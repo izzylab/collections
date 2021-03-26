@@ -1,0 +1,60 @@
+# Adding a host in the playbook directly 
+---
+- hosts: localhost
+  gather_facts: no
+  
+  tasks:
+  - name: Add a new z/OS host
+    add_host:
+      groups: zsystems
+      name: nazare-pine-wazi-sandbox-oct-full
+      ansible_python_interpreter: /usr/lpp/IBM/cyp/v3r8/pyz/bin/python3
+      ansible_host: nazare-pine-inf.fyre.ibm.com
+      ansible_port: 31942
+      ansible_user: ibmuser
+      TOOLS_ROOT: /usr/lpp/Rocket/rsusr/ported
+      TOOLS_PATH: /usr/lpp/Rocket/rsusr/ported/bin
+      PYTHON_ROOT: /usr/lpp/IBM/cyp/v3r8/pyz
+      
+
+- hosts: all
+  tasks:
+  - name: hostname
+    debug:
+      var: ansible_host
+
+# ###########################################################
+
+## Potentially unique variables for Wazi Sandbox, provided by Kiril Streltsov
+# ansible_python_interpreter: /usr/lpp/IBM/cyp/v3r8/pyz/bin/python3
+# TOOLS_ROOT: /usr/lpp/Rocket/rsusr/ported
+# TOOLS_PATH: '{{TOOLS_ROOT}}/bin'
+# PYTHON_ROOT: /usr/lpp/IBM/cyp/v3r8/pyz
+# environment_vars:
+#   _BPXK_AUTOCVT: 'ON'
+#   _CEE_RUNOPTS: 'FILETAG(AUTOCVT,AUTOTAG) POSIX(ON)'
+#   _TAG_REDIR_ERR: 'txt'
+#   _TAG_REDIR_IN: 'txt'
+#   _TAG_REDIR_OUT: 'txt'
+#   LIBPATH: '{{ PYTHON_ROOT }}/lib:/lib:/usr/lib:.'
+#   PATH: '{{ TOOLS_PATH }}:{{ PYTHON_ROOT }}/bin:.:/bin:/usr/sbin'
+#   GIT_SHELL: '{{ TOOLS_PATH }}/bash'
+#   GIT_EXEC_PATH: '{{ TOOLS_PATH }}/git-core'
+#   GIT_TEMPLATE_DIR: '{{ TOOLS_ROOT }}/share/git-core/templates'
+##
+
+- name: Execute playbook tasks against configured z/OS managed nodes
+  hosts: zsystems
+
+  environment:
+    _CEE_RUNOPTS: "FILETAG(AUTOCVT,AUTOTAG) POSIX(ON)"
+    _BPXK_AUTOCVT: "ON"
+    _BPXK_JOBLOG: STDERR
+    _BPXK_SHAREAS: "YES"
+    _TAG_REDIR_ERR: txt
+    _TAG_REDIR_IN: txt
+    _TAG_REDIR_OUT: txt
+  
+  tasks:
+  - name: Touch a file
+    command: touch foo.txt
